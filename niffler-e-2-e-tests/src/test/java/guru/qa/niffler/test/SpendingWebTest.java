@@ -24,17 +24,17 @@ public class SpendingWebTest {
     void doLogin() {
         Selenide.open("http://127.0.0.1:3000/main");
         $("a[href*='redirect']").click();
-        $("input[name='username']").setValue("dima");
-        $("input[name='password']").setValue("12345");
+        $("input[name='username']").setValue("butchik");
+        $("input[name='password']").setValue("007z");
         $("button[type='submit']").click();
     }
 
 
     @Spend(
-            username = "dima",
-            description = "Рыбалка на Ладоге",
-            category = "Рыбалка",
-            amount = 14000.00,
+            username = "butchik",
+            description = "Fishing license",
+            category = "FISHING",
+            amount = 20.00,
             currency = CurrencyValues.RUB
     )
     @Test
