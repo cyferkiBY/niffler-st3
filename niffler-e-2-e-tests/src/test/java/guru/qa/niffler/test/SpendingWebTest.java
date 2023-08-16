@@ -2,6 +2,7 @@ package guru.qa.niffler.test;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
+import guru.qa.niffler.jupiter.Category;
 import guru.qa.niffler.jupiter.Spend;
 import guru.qa.niffler.model.CurrencyValues;
 import guru.qa.niffler.model.SpendJson;
@@ -29,14 +30,19 @@ public class SpendingWebTest {
         $("button[type='submit']").click();
     }
 
+    @Category(
+            username = "butchik",
+            description = "SPORT"
+    )
 
     @Spend(
             username = "butchik",
-            description = "Fishing license",
-            category = "FISHING",
-            amount = 20.00,
+            description = "Golf",
+            category = "SPORT",
+            amount = 8000.00,
             currency = CurrencyValues.RUB
     )
+
     @Test
     void spendingShouldBeDeletedAfterDeleteAction(SpendJson createdSpend) {
         $(".spendings__content tbody")
