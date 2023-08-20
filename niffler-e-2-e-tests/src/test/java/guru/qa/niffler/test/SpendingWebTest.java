@@ -5,6 +5,7 @@ import com.codeborne.selenide.Selenide;
 import guru.qa.niffler.jupiter.Category;
 import guru.qa.niffler.jupiter.Spend;
 import guru.qa.niffler.jupiter.User;
+import guru.qa.niffler.model.CategoryJson;
 import guru.qa.niffler.model.CurrencyValues;
 import guru.qa.niffler.model.SpendJson;
 import guru.qa.niffler.model.UserJson;
@@ -41,7 +42,6 @@ public class SpendingWebTest extends BaseWebTest {
             username = "dima",
             description = "Рыбалка"
     )
-
     @Spend(
             username = user,
             description = "Рыбалка на Ладоге",
@@ -49,7 +49,6 @@ public class SpendingWebTest extends BaseWebTest {
             amount = 14000.00,
             currency = CurrencyValues.RUB
     )
-
     @Test
     @AllureId("100")
     void spendingShouldBeDeletedAfterDeleteAction(SpendJson createdSpend,
@@ -57,8 +56,7 @@ public class SpendingWebTest extends BaseWebTest {
         $(".spendings__content tbody")
                 .$$("tr")
                 .find(text(createdSpend.getDescription()))
-                .$$("td")
-                .first()
+                .$("td")
                 .scrollTo()
                 .click();
 
