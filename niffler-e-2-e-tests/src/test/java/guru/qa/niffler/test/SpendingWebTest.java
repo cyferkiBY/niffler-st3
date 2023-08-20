@@ -2,15 +2,16 @@ package guru.qa.niffler.test;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
+import guru.qa.niffler.jupiter.Category;
 import guru.qa.niffler.jupiter.Spend;
 import guru.qa.niffler.jupiter.User;
+import guru.qa.niffler.model.CategoryJson;
 import guru.qa.niffler.model.CurrencyValues;
 import guru.qa.niffler.model.SpendJson;
 import guru.qa.niffler.model.UserJson;
 import io.qameta.allure.Allure;
 import io.qameta.allure.AllureId;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -19,7 +20,6 @@ import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 import static guru.qa.niffler.jupiter.User.UserType.WITH_FRIENDS;
 
-@Disabled
 public class SpendingWebTest extends BaseWebTest {
 
     static {
@@ -38,6 +38,10 @@ public class SpendingWebTest extends BaseWebTest {
         $("button[type='submit']").click();
     }
 
+    @Category(
+            username = "dima",
+            description = "Рыбалка"
+    )
     @Spend(
             username = user,
             description = "Рыбалка на Ладоге",
@@ -52,8 +56,7 @@ public class SpendingWebTest extends BaseWebTest {
         $(".spendings__content tbody")
                 .$$("tr")
                 .find(text(createdSpend.getDescription()))
-                .$$("td")
-                .first()
+                .$("td")
                 .scrollTo()
                 .click();
 
