@@ -100,4 +100,13 @@ public class UserJson {
     public void setUserType(User.UserType userType) {
         this.userType = userType;
     }
+
+    @Override
+    public String toString() {
+        return "UserJson{" +
+                "username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", userType=" + userType +
+                '}';
+    }
 }
