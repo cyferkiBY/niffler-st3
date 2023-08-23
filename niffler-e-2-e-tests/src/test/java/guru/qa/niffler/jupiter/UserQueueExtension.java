@@ -11,6 +11,7 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeoutException;
 
 public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
@@ -35,10 +36,9 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
     }
 
     @Override
-    public void beforeEach(ExtensionContext context) {
-        for (Parameter parameter : getAllUserParametersFromContext(context)) {
+    public void beforeEach(ExtensionContext context) throws TimeoutException {
+        for (Parameter parameter : getAllUserParametersFromContext(context))
             addUserForTestFromParameterInStoreContext(context, parameter);
-        }
     }
 
     @Override
@@ -96,15 +96,21 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
                 .toList();
     }
 
-    private void addUserForTestFromParameterInStoreContext(ExtensionContext context, Parameter parameter) {
+    private void addUserForTestFromParameterInStoreContext(ExtensionContext context, Parameter parameter) throws TimeoutException {
 
         if (parameter.getType().isAssignableFrom(UserJson.class)) {
             User parameterAnnotation = parameter.getAnnotation(User.class);
             User.UserType userType = parameterAnnotation.userType();
             Queue<UserJson> usersQueueByType = usersQueue.get(userType);
             UserJson candidateForTest = null;
-            while (candidateForTest == null) {
+            //protection from the infinite loop
+            long start = System.currentTimeMillis();
+            long end = start + 30 * 1000;
+            while (System.currentTimeMillis() < end && candidateForTest == null) {
                 candidateForTest = usersQueueByType.poll();
+            }
+            if (candidateForTest == null) {
+                throw new TimeoutException();
             }
             candidateForTest.setUserType(userType);
             context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), candidateForTest);
