@@ -2,7 +2,6 @@ package guru.qa.niffler.jupiter;
 
 import guru.qa.niffler.model.UserJson;
 import io.qameta.allure.AllureId;
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.*;
 
@@ -13,7 +12,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
@@ -98,57 +96,24 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
                 .toList();
 
         return listOfParameters;
-//        Optional<Method> beforeEachMethod = Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
-//                .filter(method -> method.isAnnotationPresent(BeforeEach.class))
-//                .findFirst();
-//
-//        Parameter[] beforeEachMethodParameters = beforeEachMethod.get().getParameters();
-//        Parameter[] testMethodParameters = context.getRequiredTestMethod().getParameters();
-//
-//        return Arrays.stream(ArrayUtils.addAll(beforeEachMethodParameters, testMethodParameters))
-//                .filter(method -> method.isAnnotationPresent(User.class))
-//                .toList();
     }
 
-//    private void getUserForTestFromQueueAndAddToStoreContext(ExtensionContext context, Parameter parameter) throws TimeoutException {
-//        if (parameter.getType().isAssignableFrom(UserJson.class)) {
-//            User parameterAnnotation = parameter.getAnnotation(User.class);
-//            User.UserType userType = parameterAnnotation.userType();
-//            Queue<UserJson> usersQueueByType = usersQueue.get(userType);
-//            UserJson candidateForTest = null;
-//            //protection from the infinite loop
-//            long start = System.currentTimeMillis();
-//            long end = start + 30 * 1000;
-//            while (System.currentTimeMillis() < end && candidateForTest == null) {
-//                candidateForTest = usersQueueByType.poll();
-//            }
-//            if (candidateForTest == null) {
-//                throw new TimeoutException();
-//            }
-//            candidateForTest.setUserType(userType);
-//            context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), candidateForTest);
-//        }
-//    }
-
     private void getUserForTestFromQueueAndAddToStoreContext(ExtensionContext context, Parameter parameter) throws TimeoutException {
-
-      //  if (parameter.getType().isAssignableFrom(UserJson.class)) {
-            User parameterAnnotation = parameter.getAnnotation(User.class);
-            User.UserType userType = parameterAnnotation.userType();
-            Queue<UserJson> usersQueueByType = usersQueue.get(userType);
-            UserJson candidateForTest = null;
-            //protection from the infinite loop
-            long start = System.currentTimeMillis();
-            long end = start + 30 * 1000;
-            while (System.currentTimeMillis() < end && candidateForTest == null) {
-                candidateForTest = usersQueueByType.poll();
-            }
-            if (candidateForTest == null) {
-                throw new TimeoutException();
-            }
-            candidateForTest.setUserType(userType);
-            context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), candidateForTest);
-    //    }
+        User parameterAnnotation = parameter.getAnnotation(User.class);
+        User.UserType userType = parameterAnnotation.userType();
+        Queue<UserJson> usersQueueByType = usersQueue.get(userType);
+        UserJson candidateForTest = null;
+        //protection from the infinite loop
+        long start = System.currentTimeMillis();
+        long end = start + 30 * 1000;
+        while (System.currentTimeMillis() < end && candidateForTest == null) {
+            candidateForTest = usersQueueByType.poll();
+        }
+        if (candidateForTest == null) {
+            throw new TimeoutException();
+        }
+        candidateForTest.setUserType(userType);
+        context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), candidateForTest);
     }
 
 }
