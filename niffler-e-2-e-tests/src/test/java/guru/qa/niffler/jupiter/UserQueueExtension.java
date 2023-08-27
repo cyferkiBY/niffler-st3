@@ -6,12 +6,14 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.*;
 
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
@@ -38,7 +40,7 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
     @Override
     public void beforeEach(ExtensionContext context) throws TimeoutException {
         for (Parameter parameter : getAllUserParametersFromContext(context))
-            addUserForTestFromParameterInStoreContext(context, parameter);
+            getUserForTestFromQueueAndAddToStoreContext(context, parameter);
     }
 
     @Override
@@ -81,24 +83,56 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
         return user;
     }
 
-    private Parameter[] getAllParametersFromContext(ExtensionContext context) {
-        Optional<Method> beforeEachMethod = Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(BeforeEach.class))
-                .findFirst();
-        Parameter[] beforeEachMethodParameters = beforeEachMethod.get().getParameters();
-        Parameter[] testMethodParameters = context.getRequiredTestMethod().getParameters();
-        return ArrayUtils.addAll(beforeEachMethodParameters, testMethodParameters);
-    }
-
     private List<Parameter> getAllUserParametersFromContext(ExtensionContext context) {
-        return Arrays.stream(getAllParametersFromContext(context))
-                .filter(method -> method.isAnnotationPresent(User.class))
+        List<Method> listOfMethods = new ArrayList<>();
+        listOfMethods.add(context.getRequiredTestMethod());
+        Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
+                .filter(method -> method.isAnnotationPresent(BeforeEach.class))
+                .forEach(listOfMethods::add);
+
+        List<Parameter> listOfParameters = listOfMethods.stream()
+                .map(Executable::getParameters)
+                .flatMap(Arrays::stream)
+                .filter(parameter1 -> parameter1.getType().isAssignableFrom(UserJson.class))
+                .filter(parameter2 -> parameter2.isAnnotationPresent(User.class))
                 .toList();
+
+        return listOfParameters;
+//        Optional<Method> beforeEachMethod = Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
+//                .filter(method -> method.isAnnotationPresent(BeforeEach.class))
+//                .findFirst();
+//
+//        Parameter[] beforeEachMethodParameters = beforeEachMethod.get().getParameters();
+//        Parameter[] testMethodParameters = context.getRequiredTestMethod().getParameters();
+//
+//        return Arrays.stream(ArrayUtils.addAll(beforeEachMethodParameters, testMethodParameters))
+//                .filter(method -> method.isAnnotationPresent(User.class))
+//                .toList();
     }
 
-    private void addUserForTestFromParameterInStoreContext(ExtensionContext context, Parameter parameter) throws TimeoutException {
+//    private void getUserForTestFromQueueAndAddToStoreContext(ExtensionContext context, Parameter parameter) throws TimeoutException {
+//        if (parameter.getType().isAssignableFrom(UserJson.class)) {
+//            User parameterAnnotation = parameter.getAnnotation(User.class);
+//            User.UserType userType = parameterAnnotation.userType();
+//            Queue<UserJson> usersQueueByType = usersQueue.get(userType);
+//            UserJson candidateForTest = null;
+//            //protection from the infinite loop
+//            long start = System.currentTimeMillis();
+//            long end = start + 30 * 1000;
+//            while (System.currentTimeMillis() < end && candidateForTest == null) {
+//                candidateForTest = usersQueueByType.poll();
+//            }
+//            if (candidateForTest == null) {
+//                throw new TimeoutException();
+//            }
+//            candidateForTest.setUserType(userType);
+//            context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), candidateForTest);
+//        }
+//    }
 
-        if (parameter.getType().isAssignableFrom(UserJson.class)) {
+    private void getUserForTestFromQueueAndAddToStoreContext(ExtensionContext context, Parameter parameter) throws TimeoutException {
+
+      //  if (parameter.getType().isAssignableFrom(UserJson.class)) {
             User parameterAnnotation = parameter.getAnnotation(User.class);
             User.UserType userType = parameterAnnotation.userType();
             Queue<UserJson> usersQueueByType = usersQueue.get(userType);
@@ -114,7 +148,7 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
             }
             candidateForTest.setUserType(userType);
             context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), candidateForTest);
-        }
+    //    }
     }
 
 }
