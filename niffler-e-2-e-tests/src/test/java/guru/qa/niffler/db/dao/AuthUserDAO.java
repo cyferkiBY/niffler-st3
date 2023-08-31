@@ -12,5 +12,14 @@ public interface AuthUserDAO {
 
     int createUser(UserEntity user);
 
+    UserEntity getUserById(UUID userId);
+
+    UserEntity getUserByUsername(String userName);
+
+    void updateUser(UserEntity user);
+
     void deleteUserById(UUID userId);
+
+    void deleteUserByUserName(String userName);
+
 }
