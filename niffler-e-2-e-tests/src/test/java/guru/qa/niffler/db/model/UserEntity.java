@@ -81,4 +81,13 @@ public class UserEntity {
     public void addAuthorities(AuthorityEntity... authorities) {
         this.authorities.addAll(List.of(authorities));
     }
+
+    @Override
+    public String toString() {
+        return "UserEntity{" +
+                "username=" + username +
+                ", password='" + password + '\'' +
+                ", id='" + id + '\'' +
+                '}';
+    }
 }
