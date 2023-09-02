@@ -325,6 +325,8 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
             while (resultSet.next()) {
                 AuthorityEntity ae = new AuthorityEntity();
                 ae.setAuthority(Authority.valueOf(resultSet.getString("authority")));
+                ae.setId(resultSet.getObject("id", UUID.class));
+                ae.setUser(userEntity);
                 authorities.add(ae);
             }
             userEntity.setAuthorities(authorities);
