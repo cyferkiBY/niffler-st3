@@ -46,11 +46,9 @@ public class LoginTest extends BaseWebTest {
                 }).toList());
         authUserDAO.createUser(authUser);
 
-
-        userdataUser = new UserDataUserEntity();
         userdataUser.setUsername("valentin_6");
         userdataUser.setCurrency(CurrencyValues.RUB);
-        userDataUserDAO.createUserInUserData(userdataUser);
+        userDataUserDAO.createUserInUserData(authUser);
     }
 
 

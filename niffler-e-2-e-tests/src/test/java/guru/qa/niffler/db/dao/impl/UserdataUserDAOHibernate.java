@@ -4,6 +4,7 @@ import guru.qa.niffler.db.ServiceDB;
 import guru.qa.niffler.db.dao.UserDataUserDAO;
 import guru.qa.niffler.db.jpa.EntityManagerFactoryProvider;
 import guru.qa.niffler.db.jpa.JpaService;
+import guru.qa.niffler.db.model.auth.AuthUserEntity;
 import guru.qa.niffler.db.model.userdata.UserDataUserEntity;
 
 import java.util.UUID;
@@ -15,9 +16,19 @@ public class UserdataUserDAOHibernate extends JpaService implements UserDataUser
     }
 
     @Override
-    public int createUserInUserData(UserDataUserEntity user) {
+    public int createUserInUserData(AuthUserEntity user) {
         persist(user);
         return 0;
+    }
+
+    @Override
+    public UserDataUserEntity getUserInUserDataByUserName(String userName) {
+        return null;
+    }
+
+    @Override
+    public UserDataUserEntity getUserInUserDataById(UUID userId) {
+        return null;
     }
 
     @Override
@@ -26,7 +37,7 @@ public class UserdataUserDAOHibernate extends JpaService implements UserDataUser
     }
 
     @Override
-    public void deleteUserByUsernameInUserData(String username) {
+    public void deleteUserByUserNameInUserData(String userName) {
 
     }
 }

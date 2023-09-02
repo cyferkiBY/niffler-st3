@@ -75,16 +75,6 @@ public class AuthUserDAOSpringJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public AuthUserEntity updateUser(AuthUserEntity user) {
-        return null;
-    }
-
-    @Override
-    public void deleteUser(AuthUserEntity userId) {
-
-    }
-
-    @Override
     public AuthUserEntity getUserById(UUID userId) {
         return authJdbcTemplate.queryForObject(
                 "SELECT * FROM users WHERE id = ? ",
@@ -94,7 +84,27 @@ public class AuthUserDAOSpringJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public int createUserInUserData(UserDataUserEntity user) {
+    public AuthUserEntity getUserByUsername(String userName) {
+        return null;
+    }
+
+    @Override
+    public void updateUser(AuthUserEntity user) {
+
+    }
+
+    @Override
+    public void deleteUserById(UUID userId) {
+
+    }
+
+    @Override
+    public void deleteUserByUserName(String userName) {
+
+    }
+
+    @Override
+    public int createUserInUserData(AuthUserEntity user) {
         return userdataJdbcTemplate.update(
                 "INSERT INTO users (username, currency) VALUES (?, ?)",
                 user.getUsername(),
@@ -103,12 +113,22 @@ public class AuthUserDAOSpringJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
+    public UserDataUserEntity getUserInUserDataByUserName(String userName) {
+        return null;
+    }
+
+    @Override
+    public UserDataUserEntity getUserInUserDataById(UUID userId) {
+        return null;
+    }
+
+    @Override
     public void deleteUserByIdInUserData(UUID userId) {
         userdataJdbcTemplate.update("DELETE FROM users WHERE id = ?", userId);
     }
 
     @Override
-    public void deleteUserByUsernameInUserData(String username) {
+    public void deleteUserByUserNameInUserData(String username) {
         userdataJdbcTemplate.update("DELETE FROM users WHERE username = ?", username);
     }
 }

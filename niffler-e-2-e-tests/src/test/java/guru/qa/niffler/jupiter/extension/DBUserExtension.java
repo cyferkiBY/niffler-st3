@@ -1,9 +1,15 @@
-package guru.qa.niffler.jupiter;
+package guru.qa.niffler.jupiter.extension;
 
-import guru.qa.niffler.db.dao.*;
-import guru.qa.niffler.db.model.Authority;
-import guru.qa.niffler.db.model.AuthorityEntity;
-import guru.qa.niffler.db.model.UserEntity;
+import guru.qa.niffler.db.dao.AuthUserDAO;
+import guru.qa.niffler.db.dao.UserDataUserDAO;
+import guru.qa.niffler.db.dao.impl.AuthUserDAOHibernate;
+import guru.qa.niffler.db.dao.impl.AuthUserDAOJdbc;
+import guru.qa.niffler.db.dao.impl.AuthUserDAOSpringJdbc;
+import guru.qa.niffler.db.dao.impl.UserdataUserDAOHibernate;
+import guru.qa.niffler.db.model.auth.AuthUserEntity;
+import guru.qa.niffler.db.model.auth.Authority;
+import guru.qa.niffler.db.model.auth.AuthorityEntity;
+import guru.qa.niffler.jupiter.annotation.DBUser;
 import io.qameta.allure.AllureId;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +33,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         for (Parameter parameter : getAllUserParametersFromContext(context)) {
             DBUser annotation = parameter.getAnnotation(DBUser.class);
             if (annotation != null) {
-                UserEntity user = new UserEntity();
+                AuthUserEntity user = new AuthUserEntity();
                 user.setUsername(annotation.username());
                 user.setPassword(annotation.password());
                 user.setEnabled(true);
@@ -65,14 +71,14 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         return parameterContext.getParameter()
                 .getType()
-                .isAssignableFrom(UserEntity.class);
+                .isAssignableFrom(AuthUserEntity.class);
     }
 
     @Override
-    public UserEntity resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public AuthUserEntity resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         return extensionContext
                 .getStore(DBUserExtension.NAMESPACE)
-                .get(getKeyForArgument(extensionContext, parameterContext.getParameter()), UserEntity.class);
+                .get(getKeyForArgument(extensionContext, parameterContext.getParameter()), AuthUserEntity.class);
     }
 
     private String getAllureId(ExtensionContext context) {
@@ -97,7 +103,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         List<Parameter> listOfParameters = listOfMethods.stream()
                 .map(Executable::getParameters)
                 .flatMap(Arrays::stream)
-                .filter(parameter1 -> parameter1.getType().isAssignableFrom(UserEntity.class))
+                .filter(parameter1 -> parameter1.getType().isAssignableFrom(AuthUserEntity.class))
                 .filter(parameter2 -> parameter2.isAnnotationPresent(DBUser.class))
                 .toList();
         return listOfParameters;
@@ -113,7 +119,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         List<Parameter> listOfParameters = listOfMethods.stream()
                 .map(Executable::getParameters)
                 .flatMap(Arrays::stream)
-                .filter(parameter1 -> parameter1.getType().isAssignableFrom(UserEntity.class))
+                .filter(parameter1 -> parameter1.getType().isAssignableFrom(AuthUserEntity.class))
                 .filter(parameter2 -> parameter2.isAnnotationPresent(DBUser.class))
                 .toList();
         return listOfParameters;
@@ -134,7 +140,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
     private UserDataUserDAO getUserDataUserDAO() {
         UserDataUserDAO authUserDAO;
         if ("hibernate".equals(System.getProperty("db.impl"))) {
-            authUserDAO = new AuthUserDAOHibernate();
+            authUserDAO = new UserdataUserDAOHibernate();
         } else if ("spring".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOSpringJdbc();
         } else {

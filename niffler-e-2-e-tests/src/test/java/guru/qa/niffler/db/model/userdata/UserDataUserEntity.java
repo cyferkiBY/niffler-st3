@@ -153,4 +153,12 @@ public class UserDataUserEntity {
         result = 31 * result + Arrays.hashCode(photo);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "UserDataUserEntity{" +
+                "username=" + username +
+                ", id='" + id + '\'' +
+                '}';
+    }
 }

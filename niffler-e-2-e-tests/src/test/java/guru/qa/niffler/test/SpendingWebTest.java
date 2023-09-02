@@ -2,7 +2,7 @@ package guru.qa.niffler.test;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
-import guru.qa.niffler.jupiter.Category;
+import guru.qa.niffler.jupiter.annotation.Category;
 import guru.qa.niffler.jupiter.annotation.Spend;
 import guru.qa.niffler.jupiter.annotation.User;
 import guru.qa.niffler.model.CurrencyValues;

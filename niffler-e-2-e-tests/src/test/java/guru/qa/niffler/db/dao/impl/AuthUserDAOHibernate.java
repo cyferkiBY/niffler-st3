@@ -22,19 +22,31 @@ public class AuthUserDAOHibernate extends JpaService implements AuthUserDAO {
     }
 
     @Override
-    public AuthUserEntity updateUser(AuthUserEntity user) {
-        return merge(user);
-    }
-
-    @Override
-    public void deleteUser(AuthUserEntity user) {
-        remove(user);
-    }
-
-    @Override
     public AuthUserEntity getUserById(UUID userId) {
         return em.createQuery("select u from AuthUserEntity u where u.id=:userId", AuthUserEntity.class)
                 .setParameter("id", userId)
                 .getSingleResult();
+    }
+
+    @Override
+    public AuthUserEntity getUserByUsername(String userName) {
+        return null;
+    }
+
+    @Override
+    public void updateUser(AuthUserEntity user) {
+        merge(user);
+    }
+
+    @Override
+    public void deleteUserById(UUID userId) {
+        AuthUserEntity user = getUserById(userId);
+        remove(user);
+    }
+
+    @Override
+    public void deleteUserByUserName(String userName) {
+        AuthUserEntity user = getUserByUsername(userName);
+        remove(user);
     }
 }

@@ -125,4 +125,13 @@ public class AuthUserEntity {
     public int hashCode() {
         return Objects.hash(id, username, password, enabled, accountNonExpired, accountNonLocked, credentialsNonExpired, authorities);
     }
+
+    @Override
+    public String toString() {
+        return "AuthUserEntity{" +
+                "username=" + username +
+                "password=" + password +
+                ", id='" + id + '\'' +
+                '}';
+    }
 }
