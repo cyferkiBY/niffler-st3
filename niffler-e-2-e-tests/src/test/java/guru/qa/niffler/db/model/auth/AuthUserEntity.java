@@ -130,7 +130,7 @@ public class AuthUserEntity {
     public String toString() {
         return "AuthUserEntity{" +
                 "username=" + username +
-                "password=" + password +
+                ", password=" + password +
                 ", id='" + id + '\'' +
                 '}';
     }
