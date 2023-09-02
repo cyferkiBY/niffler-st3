@@ -129,10 +129,10 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         AuthUserDAO authUserDAO;
         if ("hibernate".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOHibernate();
-        } else if ("spring".equals(System.getProperty("db.impl"))) {
-            authUserDAO = new AuthUserDAOSpringJdbc();
-        } else {
+        } else if ("jdbc".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOJdbc();
+        } else {
+            authUserDAO = new AuthUserDAOSpringJdbc();
         }
         return authUserDAO;
     }
@@ -141,10 +141,10 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         UserDataUserDAO authUserDAO;
         if ("hibernate".equals(System.getProperty("db.impl"))) {
             authUserDAO = new UserdataUserDAOHibernate();
-        } else if ("spring".equals(System.getProperty("db.impl"))) {
-            authUserDAO = new AuthUserDAOSpringJdbc();
-        } else {
+        } else if ("jdbc".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOJdbc();
+        } else {
+            authUserDAO = new AuthUserDAOSpringJdbc();
         }
         return authUserDAO;
     }
