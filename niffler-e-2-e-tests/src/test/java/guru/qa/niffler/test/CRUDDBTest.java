@@ -151,6 +151,26 @@ public class CRUDDBTest extends BaseWebTest {
                 () -> $x("//p[text()='Неверные учетные данные пользователя']").should(visible));
     }
 
+    @Test
+    @AllureId("403")
+    @ResourceLock("LockForNoDeletionUser")
+    void mainPageShouldBeVisibleAfterLoginWithRandomUser(@DBUser(username = "", password = "") AuthUserEntity user) {
+        Allure.parameter("user", user);
+
+        Allure.step("Log out", () -> $x("//div[@data-tooltip-id ='logout']/button").click());
+
+        Allure.step("Log in with new user " + user,
+                () -> {
+                    $("a[href*='redirect']").click();
+                    $("input[name='username']").setValue(user.getUsername());
+                    $("input[name='password']").setValue(user.getPassword());
+                    $("button[type='submit']").click();
+                }
+        );
+        Allure.step("Main page should be visible after login with new password for user " + user,
+                () -> $(".main-content__section-stats").should(visible));
+    }
+
     @AfterEach
     void deleteUser(@DBUser(username = "kate1", password = "12345") AuthUserEntity user1,
                     @DBUser(username = "kate2", password = "12345") AuthUserEntity user2) {

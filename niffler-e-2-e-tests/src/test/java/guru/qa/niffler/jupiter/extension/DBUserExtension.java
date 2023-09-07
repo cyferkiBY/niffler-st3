@@ -1,5 +1,6 @@
 package guru.qa.niffler.jupiter.extension;
 
+import com.github.javafaker.Faker;
 import guru.qa.niffler.db.dao.AuthUserDAO;
 import guru.qa.niffler.db.dao.UserDataUserDAO;
 import guru.qa.niffler.db.dao.impl.AuthUserDAOHibernate;
@@ -30,12 +31,16 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
 
     @Override
     public void beforeEach(ExtensionContext context) {
+        Faker faker = null;
         for (Parameter parameter : getAllUserParametersFromContext(context)) {
             DBUser annotation = parameter.getAnnotation(DBUser.class);
             if (annotation != null) {
                 AuthUserEntity user = new AuthUserEntity();
-                user.setUsername(annotation.username());
-                user.setPassword(annotation.password());
+                if (annotation.username().isEmpty() || annotation.password().isEmpty()) {
+                    faker = Faker.instance();
+                }
+                user.setUsername(annotation.username().isEmpty() ? faker.name().username() : annotation.username());
+                user.setPassword(annotation.password().isEmpty() ? faker.internet().password() : annotation.password());
                 user.setEnabled(true);
                 user.setAccountNonExpired(true);
                 user.setAccountNonLocked(true);
@@ -50,7 +55,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
 
                 authUserDAO.createUser(user);
                 userDataUserDAO.createUserInUserData(user);
-                user.setId(authUserDAO.getUserByUsername(annotation.username()).getId());
+                user.setId(authUserDAO.getUserByUsername(user.getUsername()).getId());
                 context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), user);
             }
         }
@@ -129,10 +134,10 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         AuthUserDAO authUserDAO;
         if ("hibernate".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOHibernate();
-        } else if ("spring".equals(System.getProperty("db.impl"))) {
-            authUserDAO = new AuthUserDAOSpringJdbc();
-        } else {
+        } else if ("jdbc".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOJdbc();
+        } else {
+            authUserDAO = new AuthUserDAOSpringJdbc();
         }
         return authUserDAO;
     }
@@ -141,10 +146,10 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         UserDataUserDAO authUserDAO;
         if ("hibernate".equals(System.getProperty("db.impl"))) {
             authUserDAO = new UserdataUserDAOHibernate();
-        } else if ("spring".equals(System.getProperty("db.impl"))) {
-            authUserDAO = new AuthUserDAOSpringJdbc();
-        } else {
+        } else if ("jdbc".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOJdbc();
+        } else {
+            authUserDAO = new AuthUserDAOSpringJdbc();
         }
         return authUserDAO;
     }
