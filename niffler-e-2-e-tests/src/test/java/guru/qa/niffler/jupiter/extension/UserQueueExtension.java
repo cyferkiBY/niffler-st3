@@ -92,8 +92,8 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
         List<Parameter> listOfParameters = listOfMethods.stream()
                 .map(Executable::getParameters)
                 .flatMap(Arrays::stream)
-                .filter(parameter1 -> parameter1.getType().isAssignableFrom(UserJson.class))
-                .filter(parameter2 -> parameter2.isAnnotationPresent(User.class))
+                .filter(parameter -> parameter.getType().isAssignableFrom(UserJson.class))
+                .filter(parameter -> parameter.isAnnotationPresent(User.class))
                 .toList();
 
         return listOfParameters;

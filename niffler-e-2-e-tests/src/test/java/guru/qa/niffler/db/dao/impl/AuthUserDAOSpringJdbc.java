@@ -20,7 +20,9 @@ import org.springframework.jdbc.support.JdbcTransactionManager;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -48,38 +50,39 @@ public class AuthUserDAOSpringJdbc implements AuthUserDAO, UserDataUserDAO {
     @SuppressWarnings("unchecked")
     public int createUser(AuthUserEntity user) {
         int createdRows = 0;
-        if (Objects.nonNull(user)) {
-            if (Objects.isNull(this.getUserByUsername(user.getUsername()))) {
-                return authTtpl.execute(status -> {
-                    KeyHolder kh = new GeneratedKeyHolder();
+        if (user == null) {
+            throw new IllegalArgumentException("User is empty");
+        }
+        if (Objects.isNull(this.getUserByUsername(user.getUsername()))) {
+            return authTtpl.execute(status -> {
+                KeyHolder kh = new GeneratedKeyHolder();
 
-                    authJdbcTemplate.update(con -> {
-                        PreparedStatement ps = con.prepareStatement("INSERT INTO users (username, password, enabled, account_non_expired, account_non_locked, credentials_non_expired) " +
-                                "VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-                        ps.setString(1, user.getUsername());
-                        ps.setString(2, pe.encode(user.getPassword()));
-                        ps.setBoolean(3, user.getEnabled());
-                        ps.setBoolean(4, user.getAccountNonExpired());
-                        ps.setBoolean(5, user.getAccountNonLocked());
-                        ps.setBoolean(6, user.getCredentialsNonExpired());
-                        return ps;
-                    }, kh);
-                    final UUID userId = (UUID) kh.getKeyList().get(0).get("id");
-                    authJdbcTemplate.batchUpdate("INSERT INTO authorities (user_id, authority) VALUES (?, ?)", new BatchPreparedStatementSetter() {
-                        @Override
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            ps.setObject(1, userId);
-                            ps.setString(2, Authority.values()[i].name());
-                        }
+                authJdbcTemplate.update(con -> {
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO users (username, password, enabled, account_non_expired, account_non_locked, credentials_non_expired) " +
+                            "VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, user.getUsername());
+                    ps.setString(2, pe.encode(user.getPassword()));
+                    ps.setBoolean(3, user.getEnabled());
+                    ps.setBoolean(4, user.getAccountNonExpired());
+                    ps.setBoolean(5, user.getAccountNonLocked());
+                    ps.setBoolean(6, user.getCredentialsNonExpired());
+                    return ps;
+                }, kh);
+                final UUID userId = (UUID) kh.getKeyList().get(0).get("id");
+                authJdbcTemplate.batchUpdate("INSERT INTO authorities (user_id, authority) VALUES (?, ?)", new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setObject(1, userId);
+                        ps.setString(2, Authority.values()[i].name());
+                    }
 
-                        @Override
-                        public int getBatchSize() {
-                            return Authority.values().length;
-                        }
-                    });
-                    return 1;
+                    @Override
+                    public int getBatchSize() {
+                        return Authority.values().length;
+                    }
                 });
-            }
+                return 1;
+            });
         }
         return createdRows;
     }
@@ -154,14 +157,15 @@ public class AuthUserDAOSpringJdbc implements AuthUserDAO, UserDataUserDAO {
     @Override
     public int createUserInUserData(AuthUserEntity user) {
         int createdRows = 0;
-        if (Objects.nonNull(user)) {
-            if (Objects.isNull(this.getUserInUserDataByUserName(user.getUsername()))) {
-                return userdataJdbcTemplate.update(
-                        "INSERT INTO users (username, currency) VALUES (?, ?)",
-                        user.getUsername(),
-                        CurrencyValues.RUB.name()
-                );
-            }
+        if (user == null) {
+            throw new IllegalArgumentException("User is empty");
+        }
+        if (Objects.isNull(this.getUserInUserDataByUserName(user.getUsername()))) {
+            return userdataJdbcTemplate.update(
+                    "INSERT INTO users (username, currency) VALUES (?, ?)",
+                    user.getUsername(),
+                    CurrencyValues.RUB.name()
+            );
         }
         return createdRows;
     }
