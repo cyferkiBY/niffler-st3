@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.*;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -24,35 +25,33 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        for (Parameter parameter : getAllUserParametersFromContext(context)) {
+        for (Parameter parameter : getAllUserParametersFromContext(context, BeforeEach.class)) {
             DBUser annotation = parameter.getAnnotation(DBUser.class);
-            if (annotation != null) {
-                UserEntity user = new UserEntity();
-                user.setUsername(annotation.username());
-                user.setPassword(annotation.password());
-                user.setEnabled(true);
-                user.setAccountNonExpired(true);
-                user.setAccountNonLocked(true);
-                user.setCredentialsNonExpired(true);
-                user.setAuthorities(Arrays.stream(Authority.values())
-                        .map(a -> {
-                            AuthorityEntity ae = new AuthorityEntity();
-                            ae.setAuthority(a);
-                            ae.setUser(user);
-                            return ae;
-                        }).toList());
+            UserEntity user = new UserEntity();
+            user.setUsername(annotation.username());
+            user.setPassword(annotation.password());
+            user.setEnabled(true);
+            user.setAccountNonExpired(true);
+            user.setAccountNonLocked(true);
+            user.setCredentialsNonExpired(true);
+            user.setAuthorities(Arrays.stream(Authority.values())
+                    .map(a -> {
+                        AuthorityEntity ae = new AuthorityEntity();
+                        ae.setAuthority(a);
+                        ae.setUser(user);
+                        return ae;
+                    }).toList());
 
-                authUserDAO.createUser(user);
-                userDataUserDAO.createUserInUserData(user);
-                user.setId(authUserDAO.getUserByUsername(annotation.username()).getId());
-                context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), user);
-            }
+            authUserDAO.createUser(user);
+            userDataUserDAO.createUserInUserData(user);
+            user.setId(authUserDAO.getUserByUsername(annotation.username()).getId());
+            context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), user);
         }
     }
 
     @Override
     public void afterEach(ExtensionContext context) {
-        for (Parameter parameter : getUserAfterEachParametersFromContext(context)) {
+        for (Parameter parameter : getAllUserParametersFromContext(context, AfterEach.class)) {
             DBUser annotation = parameter.getAnnotation(DBUser.class);
             if (annotation != null) {
                 authUserDAO.deleteUserByUserName(annotation.username());
@@ -87,34 +86,17 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         return String.format("test_%s_%s_%s", getAllureId(context), parameter.getDeclaringExecutable().getName(), parameter.getName());
     }
 
-    private List<Parameter> getAllUserParametersFromContext(ExtensionContext context) {
+    private List<Parameter> getAllUserParametersFromContext(ExtensionContext context, Class<? extends Annotation> annotationClass) {
         List<Method> listOfMethods = new ArrayList<>();
         listOfMethods.add(context.getRequiredTestMethod());
         Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(BeforeEach.class))
+                .filter(method -> method.isAnnotationPresent(annotationClass))
                 .forEach(listOfMethods::add);
 
         List<Parameter> listOfParameters = listOfMethods.stream()
-                .map(Executable::getParameters)
-                .flatMap(Arrays::stream)
-                .filter(parameter1 -> parameter1.getType().isAssignableFrom(UserEntity.class))
-                .filter(parameter2 -> parameter2.isAnnotationPresent(DBUser.class))
-                .toList();
-        return listOfParameters;
-    }
-
-    private List<Parameter> getUserAfterEachParametersFromContext(ExtensionContext context) {
-        List<Method> listOfMethods = new ArrayList<>();
-        listOfMethods.add(context.getRequiredTestMethod());
-        Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(AfterEach.class))
-                .forEach(listOfMethods::add);
-
-        List<Parameter> listOfParameters = listOfMethods.stream()
-                .map(Executable::getParameters)
-                .flatMap(Arrays::stream)
-                .filter(parameter1 -> parameter1.getType().isAssignableFrom(UserEntity.class))
-                .filter(parameter2 -> parameter2.isAnnotationPresent(DBUser.class))
+                .map(Executable::getParameters).flatMap(Arrays::stream)
+                .filter(parameter -> parameter.getType().isAssignableFrom(UserEntity.class))
+                .filter(parameter -> parameter.isAnnotationPresent(DBUser.class))
                 .toList();
         return listOfParameters;
     }
