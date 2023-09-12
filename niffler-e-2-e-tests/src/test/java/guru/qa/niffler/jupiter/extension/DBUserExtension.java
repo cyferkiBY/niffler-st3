@@ -16,6 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.*;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -26,44 +27,43 @@ import java.util.List;
 public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
     public static ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(DBUserExtension.class);
+    private static final Faker FAKER = new Faker();
     private final AuthUserDAO authUserDAO = getAuthUserDAO();
     private final UserDataUserDAO userDataUserDAO = getUserDataUserDAO();
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        Faker faker = null;
-        for (Parameter parameter : getAllUserParametersFromContext(context)) {
+        //Faker faker = null;
+        for (Parameter parameter : getAllUserParametersFromContext(context, BeforeEach.class)) {
             DBUser annotation = parameter.getAnnotation(DBUser.class);
-            if (annotation != null) {
-                AuthUserEntity user = new AuthUserEntity();
-                if (annotation.username().isEmpty() || annotation.password().isEmpty()) {
-                    faker = Faker.instance();
-                }
-                user.setUsername(annotation.username().isEmpty() ? faker.name().username() : annotation.username());
-                user.setPassword(annotation.password().isEmpty() ? faker.internet().password() : annotation.password());
-                user.setEnabled(true);
-                user.setAccountNonExpired(true);
-                user.setAccountNonLocked(true);
-                user.setCredentialsNonExpired(true);
-                user.setAuthorities(Arrays.stream(Authority.values())
-                        .map(a -> {
-                            AuthorityEntity ae = new AuthorityEntity();
-                            ae.setAuthority(a);
-                            ae.setUser(user);
-                            return ae;
-                        }).toList());
+            AuthUserEntity user = new AuthUserEntity();
+//            if (annotation.username().isEmpty() || annotation.password().isEmpty()) {
+//                faker = Faker.instance();
+//            }
+            user.setUsername(annotation.username().isEmpty() ? FAKER.name().username() : annotation.username());
+            user.setPassword(annotation.password().isEmpty() ? FAKER.internet().password() : annotation.password());
+            user.setEnabled(true);
+            user.setAccountNonExpired(true);
+            user.setAccountNonLocked(true);
+            user.setCredentialsNonExpired(true);
+            user.setAuthorities(Arrays.stream(Authority.values())
+                    .map(a -> {
+                        AuthorityEntity ae = new AuthorityEntity();
+                        ae.setAuthority(a);
+                        ae.setUser(user);
+                        return ae;
+                    }).toList());
 
-                authUserDAO.createUser(user);
-                userDataUserDAO.createUserInUserData(user);
-                user.setId(authUserDAO.getUserByUsername(user.getUsername()).getId());
-                context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), user);
-            }
+            authUserDAO.createUser(user);
+            userDataUserDAO.createUserInUserData(user);
+            user.setId(authUserDAO.getUserByUsername(user.getUsername()).getId());
+            context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), user);
         }
     }
 
     @Override
     public void afterEach(ExtensionContext context) {
-        for (Parameter parameter : getUserAfterEachParametersFromContext(context)) {
+        for (Parameter parameter : getAllUserParametersFromContext(context, AfterEach.class)) {
             DBUser annotation = parameter.getAnnotation(DBUser.class);
             if (annotation != null) {
                 authUserDAO.deleteUserByUserName(annotation.username());
@@ -98,34 +98,18 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
         return String.format("test_%s_%s_%s", getAllureId(context), parameter.getDeclaringExecutable().getName(), parameter.getName());
     }
 
-    private List<Parameter> getAllUserParametersFromContext(ExtensionContext context) {
+    private List<Parameter> getAllUserParametersFromContext(ExtensionContext context, Class<? extends Annotation> annotationClass) {
         List<Method> listOfMethods = new ArrayList<>();
         listOfMethods.add(context.getRequiredTestMethod());
         Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(BeforeEach.class))
+                .filter(method -> method.isAnnotationPresent(annotationClass))
                 .forEach(listOfMethods::add);
 
         List<Parameter> listOfParameters = listOfMethods.stream()
                 .map(Executable::getParameters)
                 .flatMap(Arrays::stream)
-                .filter(parameter1 -> parameter1.getType().isAssignableFrom(AuthUserEntity.class))
-                .filter(parameter2 -> parameter2.isAnnotationPresent(DBUser.class))
-                .toList();
-        return listOfParameters;
-    }
-
-    private List<Parameter> getUserAfterEachParametersFromContext(ExtensionContext context) {
-        List<Method> listOfMethods = new ArrayList<>();
-        listOfMethods.add(context.getRequiredTestMethod());
-        Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(AfterEach.class))
-                .forEach(listOfMethods::add);
-
-        List<Parameter> listOfParameters = listOfMethods.stream()
-                .map(Executable::getParameters)
-                .flatMap(Arrays::stream)
-                .filter(parameter1 -> parameter1.getType().isAssignableFrom(AuthUserEntity.class))
-                .filter(parameter2 -> parameter2.isAnnotationPresent(DBUser.class))
+                .filter(parameter -> parameter.getType().isAssignableFrom(AuthUserEntity.class))
+                .filter(parameter -> parameter.isAnnotationPresent(DBUser.class))
                 .toList();
         return listOfParameters;
     }

@@ -154,7 +154,7 @@ public class CRUDDBTest extends BaseWebTest {
     @Test
     @AllureId("403")
     @ResourceLock("LockForNoDeletionUser")
-    void mainPageShouldBeVisibleAfterLoginWithRandomUser(@DBUser(username = "", password = "") AuthUserEntity user) {
+    void mainPageShouldBeVisibleAfterLoginWithRandomUser(@DBUser AuthUserEntity user) {
         Allure.parameter("user", user);
 
         Allure.step("Log out", () -> $x("//div[@data-tooltip-id ='logout']/button").click());
