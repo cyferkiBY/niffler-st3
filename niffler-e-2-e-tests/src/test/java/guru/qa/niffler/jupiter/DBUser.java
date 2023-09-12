@@ -8,7 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PARAMETER, ElementType.METHOD})
+@Target({ElementType.PARAMETER})
 @ExtendWith(DBUserExtension.class)
 public @interface DBUser {
     String username();
