@@ -1,8 +1,14 @@
-package guru.qa.niffler.db.dao;
+package guru.qa.niffler.db.dao.impl;
 
-import guru.qa.niffler.db.DataSourceProvider;
 import guru.qa.niffler.db.ServiceDB;
-import guru.qa.niffler.db.model.*;
+import guru.qa.niffler.db.dao.AuthUserDAO;
+import guru.qa.niffler.db.dao.UserDataUserDAO;
+import guru.qa.niffler.db.jdbc.DataSourceProvider;
+import guru.qa.niffler.db.model.CurrencyValues;
+import guru.qa.niffler.db.model.auth.AuthUserEntity;
+import guru.qa.niffler.db.model.auth.Authority;
+import guru.qa.niffler.db.model.auth.AuthorityEntity;
+import guru.qa.niffler.db.model.userdata.UserDataUserEntity;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -20,10 +26,10 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     private static DataSource userdataDs = DataSourceProvider.INSTANCE.getDataSource(ServiceDB.USERDATA);
 
     @Override
-    public int createUser(UserEntity user) {
+    public int createUser(AuthUserEntity user) {
         int createdRows = 0;
-        if (Objects.isNull(user)) {
-            throw new IllegalArgumentException("User don't created, because parameter 'user' is empty");
+        if (user == null) {
+            throw new IllegalArgumentException("User is empty");
         }
         try (Connection conn = authDs.getConnection()) {
             if (Objects.isNull(this.getUserByUsername(user.getUsername()))) {
@@ -74,8 +80,8 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public UserEntity getUserById(UUID userId) {
-        UserEntity userEntity;
+    public AuthUserEntity getUserById(UUID userId) {
+        AuthUserEntity userEntity;
         try (Connection conn = authDs.getConnection();
              PreparedStatement usersPs = conn.prepareStatement("SELECT * FROM users u " +
                      "JOIN authorities a ON u.id = a.user_id " +
@@ -91,8 +97,8 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public UserEntity getUserByUsername(String userName) {
-        UserEntity userEntity = null;
+    public AuthUserEntity getUserByUsername(String userName) {
+        AuthUserEntity userEntity = null;
         try (Connection conn = authDs.getConnection();
              PreparedStatement usersPs = conn.prepareStatement("SELECT * FROM users u " +
                      "JOIN authorities a ON u.id = a.user_id " +
@@ -108,7 +114,7 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public void updateUser(UserEntity user) {
+    public void updateUser(AuthUserEntity user) {
         try (Connection conn = authDs.getConnection();
              PreparedStatement ps = conn.prepareStatement("""
                      UPDATE users SET
@@ -134,9 +140,10 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
         }
     }
 
+    @Override
     public void deleteUserById(UUID userId) {
         try (Connection conn = authDs.getConnection()) {
-            UserEntity user = this.getUserById(userId);
+            AuthUserEntity user = this.getUserById(userId);
             if (Objects.nonNull(user)) {
                 conn.setAutoCommit(false);
                 try (PreparedStatement authorityPs = conn.prepareStatement(
@@ -160,9 +167,10 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
         }
     }
 
+    @Override
     public void deleteUserByUserName(String userName) {
         try (Connection conn = authDs.getConnection()) {
-            UserEntity user = this.getUserByUsername(userName);
+            AuthUserEntity user = this.getUserByUsername(userName);
             if (Objects.nonNull(user)) {
                 conn.setAutoCommit(false);
                 try (PreparedStatement authorityPs = conn.prepareStatement(
@@ -187,10 +195,10 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public int createUserInUserData(UserEntity user) {
+    public int createUserInUserData(AuthUserEntity user) {
         int createdRows = 0;
-        if (Objects.isNull(user)) {
-            throw new IllegalArgumentException("User in UserData don't created, because parameter 'user' is empty");
+        if (user == null) {
+            throw new IllegalArgumentException("User is empty");
         }
         try (Connection conn = userdataDs.getConnection()) {
             if (Objects.isNull(this.getUserInUserDataByUserName(user.getUsername()))) {
@@ -209,8 +217,8 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public UserDataEntity getUserInUserDataByUserName(String userName) {
-        UserDataEntity userDataEntity;
+    public UserDataUserEntity getUserInUserDataByUserName(String userName) {
+        UserDataUserEntity userDataEntity;
         try (Connection conn = userdataDs.getConnection()) {
             try (PreparedStatement usersPs = conn.prepareStatement(
                     "SELECT * FROM users " +
@@ -227,8 +235,8 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public UserDataEntity getUserInUserDataById(UUID userId) {
-        UserDataEntity userDataEntity;
+    public UserDataUserEntity getUserInUserDataById(UUID userId) {
+        UserDataUserEntity userDataEntity;
         try (Connection conn = userdataDs.getConnection()) {
             try (PreparedStatement usersPs = conn.prepareStatement(
                     "SELECT * FROM users " +
@@ -246,7 +254,7 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
 
     @Override
     public void deleteUserByIdInUserData(UUID userId) {
-        UserDataEntity userDataEntity = getUserInUserDataById(userId);
+        UserDataUserEntity userDataEntity = getUserInUserDataById(userId);
         if (Objects.nonNull(userDataEntity)) {
             try (Connection conn = userdataDs.getConnection()) {
                 conn.setAutoCommit(false);
@@ -274,7 +282,7 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
 
     @Override
     public void deleteUserByUserNameInUserData(String userName) {
-        UserDataEntity userDataEntity = getUserInUserDataByUserName(userName);
+        UserDataUserEntity userDataEntity = getUserInUserDataByUserName(userName);
         if (Objects.nonNull(userDataEntity)) {
             try (Connection conn = userdataDs.getConnection()) {
                 conn.setAutoCommit(false);
@@ -300,10 +308,10 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
         }
     }
 
-    private UserEntity convertResultSetToUserEntity(ResultSet resultSet) throws SQLException {
-        UserEntity userEntity = null;
+    private AuthUserEntity convertResultSetToUserEntity(ResultSet resultSet) throws SQLException {
+        AuthUserEntity userEntity = null;
         if (resultSet.next()) {
-            userEntity = new UserEntity();
+            userEntity = new AuthUserEntity();
             userEntity.setId(resultSet.getObject("id", UUID.class));
             userEntity.setUsername(resultSet.getString("username"));
             userEntity.setPassword(pe.encode(resultSet.getString("password")));
@@ -319,6 +327,8 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
             while (resultSet.next()) {
                 AuthorityEntity ae = new AuthorityEntity();
                 ae.setAuthority(Authority.valueOf(resultSet.getString("authority")));
+                ae.setId(resultSet.getObject("id", UUID.class));
+                ae.setUser(userEntity);
                 authorities.add(ae);
             }
             userEntity.setAuthorities(authorities);
@@ -326,10 +336,10 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
         return userEntity;
     }
 
-    private UserDataEntity convertResultSetToUserDataEntity(ResultSet resultSet) throws SQLException {
-        UserDataEntity userDataEntity = null;
+    private UserDataUserEntity convertResultSetToUserDataEntity(ResultSet resultSet) throws SQLException {
+        UserDataUserEntity userDataEntity = null;
         if (resultSet.next()) {
-            userDataEntity = new UserDataEntity();
+            userDataEntity = new UserDataUserEntity();
             userDataEntity.setId(resultSet.getObject("id", UUID.class));
             userDataEntity.setUsername(resultSet.getString("username"));
             userDataEntity.setCurrency(CurrencyValues.valueOf(resultSet.getString("currency")));
