@@ -161,6 +161,7 @@ dependencies {
     }
     testImplementation 'com.github.tomakehurst:wiremock-standalone:2.27.2'
     components.all(NettyBomAlignmentRule)
+    components.all(JacksonBomAlignmentRule)
 }
 
 abstract class NettyBomAlignmentRule implements ComponentMetadataRule {
@@ -169,6 +170,17 @@ abstract class NettyBomAlignmentRule implements ComponentMetadataRule {
         componentMetadataContext.details.with {
             if (id.group.startsWith("io.netty")) {
                 belongsTo("io.netty:netty-bom:${id.version}", false)
+            }
+        }
+    }
+}
+
+abstract class JacksonBomAlignmentRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext componentMetadataContext) {
+        componentMetadataContext.details.with {
+            if (id.group.startsWith("com.fasterxml.jackson")) {
+                belongsTo("com.fasterxml.jackson:jackson-bom:${id.version}", false)
             }
         }
     }
