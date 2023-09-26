@@ -1,13 +1,6 @@
 package guru.qa.niffler.db.model.auth;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,11 +55,11 @@ public class AuthUserEntity {
     }
 
     public String getPassword() {
-        return password;
+        return password.startsWith("{noop}") ? password.substring(6) : password;
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.password = (!password.startsWith("{bcrypt}") && !password.startsWith("{noop}")) ? "{noop}" + password : password;
     }
 
     public Boolean getEnabled() {
