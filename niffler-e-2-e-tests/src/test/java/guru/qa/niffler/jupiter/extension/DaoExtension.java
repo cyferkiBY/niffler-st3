@@ -5,6 +5,7 @@ import guru.qa.niffler.db.dao.UserDataUserDAO;
 import guru.qa.niffler.db.dao.impl.AuthUserDAOHibernate;
 import guru.qa.niffler.db.dao.impl.AuthUserDAOJdbc;
 import guru.qa.niffler.db.dao.impl.AuthUserDAOSpringJdbc;
+import guru.qa.niffler.db.dao.impl.UserdataUserDAOHibernate;
 import guru.qa.niffler.jupiter.annotation.Dao;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
@@ -21,16 +22,20 @@ public class DaoExtension implements TestInstancePostProcessor {
                 field.setAccessible(true);
 
                 AuthUserDAO dao;
+                UserDataUserDAO userDataUserDAO;
 
-                if ("hibernate".equals(System.getProperty("db.impl"))) {
-                    dao = new AuthUserDAOHibernate();
+                if ("springJdbc".equals(System.getProperty("db.impl"))) {
+                    dao = new AuthUserDAOSpringJdbc();
+                    userDataUserDAO = new AuthUserDAOSpringJdbc();
                 } else if ("jdbc".equals(System.getProperty("db.impl"))) {
                     dao = new AuthUserDAOJdbc();
+                    userDataUserDAO = new AuthUserDAOSpringJdbc();
                 } else {
-                    dao = new AuthUserDAOSpringJdbc();
+                    dao = new AuthUserDAOHibernate();
+                    userDataUserDAO = new UserdataUserDAOHibernate();
                 }
 
-                field.set(testInstance, dao);
+                field.set(testInstance, field.getType().isAssignableFrom(AuthUserDAO.class) ? dao : userDataUserDAO);
             }
 
         }
