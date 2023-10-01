@@ -26,7 +26,7 @@ public class CRUDDBTest extends BaseWebTest {
     private UserDataUserDAO userDataUserDAO;
 
     @BeforeEach
-    void doLogin(@DBUser(username = "kate106", password = "12345") AuthUserEntity user) {
+    void doLogin(@DBUser(username = "kate1", password = "12345") AuthUserEntity user) {
         Selenide.open("http://127.0.0.1:3000/main");
         Allure.step("Log in with new user " + user,
                 () -> {
@@ -50,8 +50,8 @@ public class CRUDDBTest extends BaseWebTest {
     @AllureId("402")
     @ResourceLock("LockForNoDeletionUser")
     void mainPageShouldBeVisibleAfterLoginWithAnotherUserFromParameters(
-            @DBUser(username = "kate106", password = "12345") AuthUserEntity startedUser,
-            @DBUser(username = "kate206", password = "12345") AuthUserEntity anotherUser) {
+            @DBUser(username = "kate1", password = "12345") AuthUserEntity startedUser,
+            @DBUser(username = "kate2", password = "12345") AuthUserEntity anotherUser) {
 
         Allure.parameter("startUser", startedUser);
         Allure.parameter("anotherUser", anotherUser);
@@ -75,7 +75,7 @@ public class CRUDDBTest extends BaseWebTest {
     @Test
     @AllureId("403")
     @ResourceLock("LockForNoDeletionUser")
-    void mainPageShouldBeVisibleAfterLoginWithNewPassword(@DBUser(username = "kate106", password = "12345") AuthUserEntity user) {
+    void mainPageShouldBeVisibleAfterLoginWithNewPassword(@DBUser(username = "kate1", password = "12345") AuthUserEntity user) {
         Allure.parameter("startUser", user);
 
         String newPassword = "54321";
@@ -107,7 +107,7 @@ public class CRUDDBTest extends BaseWebTest {
     @Test
     @AllureId("404")
     @ResourceLock("LockForNoDeletionUser")
-    void checkCRUD(@DBUser(username = "kate306", password = "12345") AuthUserEntity user) {
+    void checkCRUD(@DBUser(username = "kate3", password = "12345") AuthUserEntity user) {
         Allure.parameter("user", user);
 
         Allure.step("Log out", () -> $x("//div[@data-tooltip-id ='logout']/button").click());
