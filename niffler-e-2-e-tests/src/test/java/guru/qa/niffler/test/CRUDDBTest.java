@@ -9,7 +9,6 @@ import guru.qa.niffler.jupiter.annotation.Dao;
 import guru.qa.niffler.jupiter.extension.DaoExtension;
 import io.qameta.allure.Allure;
 import io.qameta.allure.AllureId;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +64,7 @@ public class CRUDDBTest extends BaseWebTest {
                 () -> {
                     $("a[href*='redirect']").click();
                     $("input[name='username']").setValue(anotherUser.getUsername());
-                    $("input[name='password']").setValue(anotherUser.getPassword());
+                    $("input[name='password']").setValue("12345");
                     $("button[type='submit']").click();
                 }
         );
@@ -152,7 +151,7 @@ public class CRUDDBTest extends BaseWebTest {
     }
 
     @Test
-    @AllureId("403")
+    @AllureId("405")
     @ResourceLock("LockForNoDeletionUser")
     void mainPageShouldBeVisibleAfterLoginWithRandomUser(@DBUser AuthUserEntity user) {
         Allure.parameter("user", user);
@@ -169,10 +168,5 @@ public class CRUDDBTest extends BaseWebTest {
         );
         Allure.step("Main page should be visible after login with new password for user " + user,
                 () -> $(".main-content__section-stats").should(visible));
-    }
-
-    @AfterEach
-    void deleteUser(@DBUser(username = "kate1", password = "12345") AuthUserEntity user1,
-                    @DBUser(username = "kate2", password = "12345") AuthUserEntity user2) {
     }
 }

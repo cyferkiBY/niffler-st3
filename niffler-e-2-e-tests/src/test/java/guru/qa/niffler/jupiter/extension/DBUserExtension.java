@@ -7,9 +7,11 @@ import guru.qa.niffler.db.dao.impl.AuthUserDAOHibernate;
 import guru.qa.niffler.db.dao.impl.AuthUserDAOJdbc;
 import guru.qa.niffler.db.dao.impl.AuthUserDAOSpringJdbc;
 import guru.qa.niffler.db.dao.impl.UserdataUserDAOHibernate;
+import guru.qa.niffler.db.model.CurrencyValues;
 import guru.qa.niffler.db.model.auth.AuthUserEntity;
 import guru.qa.niffler.db.model.auth.Authority;
 import guru.qa.niffler.db.model.auth.AuthorityEntity;
+import guru.qa.niffler.db.model.userdata.UserDataUserEntity;
 import guru.qa.niffler.jupiter.annotation.DBUser;
 import io.qameta.allure.AllureId;
 import org.junit.jupiter.api.AfterEach;
@@ -23,6 +25,7 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
@@ -33,29 +36,32 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        //Faker faker = null;
         for (Parameter parameter : getAllUserParametersFromContext(context, BeforeEach.class)) {
             DBUser annotation = parameter.getAnnotation(DBUser.class);
+            String psw = annotation.password().isEmpty() ? FAKER.internet().password() : annotation.password();
             AuthUserEntity user = new AuthUserEntity();
-//            if (annotation.username().isEmpty() || annotation.password().isEmpty()) {
-//                faker = Faker.instance();
-//            }
             user.setUsername(annotation.username().isEmpty() ? FAKER.name().username() : annotation.username());
-            user.setPassword(annotation.password().isEmpty() ? FAKER.internet().password() : annotation.password());
+            user.setPassword(psw);
             user.setEnabled(true);
             user.setAccountNonExpired(true);
             user.setAccountNonLocked(true);
             user.setCredentialsNonExpired(true);
-            user.setAuthorities(Arrays.stream(Authority.values())
+            user.setAuthorities(new ArrayList<>(Arrays.stream(Authority.values())
                     .map(a -> {
                         AuthorityEntity ae = new AuthorityEntity();
                         ae.setAuthority(a);
                         ae.setUser(user);
                         return ae;
-                    }).toList());
-
+                    }).collect(Collectors.toList())));
             authUserDAO.createUser(user);
-            userDataUserDAO.createUserInUserData(user);
+
+            UserDataUserEntity userdataUser = new UserDataUserEntity();
+            userdataUser.setCurrency(CurrencyValues.RUB);
+            userdataUser.setUsername(user.getUsername());
+            userdataUser.setFirstname(FAKER.name().firstName());
+            userdataUser.setSurname(FAKER.name().lastName());
+            userDataUserDAO.createUserInUserData(userdataUser);
+
             user.setId(authUserDAO.getUserByUsername(user.getUsername()).getId());
             context.getStore(NAMESPACE).put(getKeyForArgument(context, parameter), user);
         }
@@ -116,24 +122,24 @@ public class DBUserExtension implements BeforeEachCallback, AfterEachCallback, P
 
     private AuthUserDAO getAuthUserDAO() {
         AuthUserDAO authUserDAO;
-        if ("hibernate".equals(System.getProperty("db.impl"))) {
-            authUserDAO = new AuthUserDAOHibernate();
+        if ("springJdbc".equals(System.getProperty("db.impl"))) {
+            authUserDAO = new AuthUserDAOSpringJdbc();
         } else if ("jdbc".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOJdbc();
         } else {
-            authUserDAO = new AuthUserDAOSpringJdbc();
+            authUserDAO = new AuthUserDAOHibernate();
         }
         return authUserDAO;
     }
 
     private UserDataUserDAO getUserDataUserDAO() {
         UserDataUserDAO authUserDAO;
-        if ("hibernate".equals(System.getProperty("db.impl"))) {
-            authUserDAO = new UserdataUserDAOHibernate();
+        if ("springJdbc".equals(System.getProperty("db.impl"))) {
+            authUserDAO = new AuthUserDAOSpringJdbc();
         } else if ("jdbc".equals(System.getProperty("db.impl"))) {
             authUserDAO = new AuthUserDAOJdbc();
         } else {
-            authUserDAO = new AuthUserDAOSpringJdbc();
+            authUserDAO = new UserdataUserDAOHibernate();
         }
         return authUserDAO;
     }

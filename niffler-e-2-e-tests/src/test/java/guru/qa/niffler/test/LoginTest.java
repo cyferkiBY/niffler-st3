@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
@@ -43,12 +44,13 @@ public class LoginTest extends BaseWebTest {
                     ae.setAuthority(a);
                     ae.setUser(authUser);
                     return ae;
-                }).toList());
+                }).collect(Collectors.toList()));
         authUserDAO.createUser(authUser);
 
+        userdataUser = new UserDataUserEntity();
         userdataUser.setUsername("valentin_6");
         userdataUser.setCurrency(CurrencyValues.RUB);
-        userDataUserDAO.createUserInUserData(authUser);
+        userDataUserDAO.createUserInUserData(userdataUser);
     }
 
 

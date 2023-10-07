@@ -195,7 +195,7 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public int createUserInUserData(AuthUserEntity user) {
+    public int createUserInUserData(UserDataUserEntity user) {
         int createdRows = 0;
         if (user == null) {
             throw new IllegalArgumentException("User is empty");
@@ -206,7 +206,7 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
                         "INSERT INTO users (username, currency) " +
                                 "VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS)) {
                     usersPs.setString(1, user.getUsername());
-                    usersPs.setString(2, CurrencyValues.RUB.name());
+                    usersPs.setString(2, user.getCurrency().name());
                     createdRows = usersPs.executeUpdate();
                 }
             }

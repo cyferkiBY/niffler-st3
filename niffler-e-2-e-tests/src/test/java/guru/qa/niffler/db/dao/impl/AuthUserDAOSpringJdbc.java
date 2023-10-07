@@ -4,7 +4,6 @@ import guru.qa.niffler.db.ServiceDB;
 import guru.qa.niffler.db.dao.AuthUserDAO;
 import guru.qa.niffler.db.dao.UserDataUserDAO;
 import guru.qa.niffler.db.jdbc.DataSourceProvider;
-import guru.qa.niffler.db.model.CurrencyValues;
 import guru.qa.niffler.db.model.auth.AuthUserEntity;
 import guru.qa.niffler.db.model.auth.Authority;
 import guru.qa.niffler.db.model.auth.AuthorityEntity;
@@ -155,7 +154,7 @@ public class AuthUserDAOSpringJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public int createUserInUserData(AuthUserEntity user) {
+    public int createUserInUserData(UserDataUserEntity user) {
         int createdRows = 0;
         if (user == null) {
             throw new IllegalArgumentException("User is empty");
@@ -164,7 +163,7 @@ public class AuthUserDAOSpringJdbc implements AuthUserDAO, UserDataUserDAO {
             return userdataJdbcTemplate.update(
                     "INSERT INTO users (username, currency) VALUES (?, ?)",
                     user.getUsername(),
-                    CurrencyValues.RUB.name()
+                    user.getCurrency().name()
             );
         }
         return createdRows;
